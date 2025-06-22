@@ -2,22 +2,8 @@
   "version": 2,
   "builds": [
     {
-      "src": "frontend/package.json",
+      "src": "frontend/next.config.mjs",
       "use": "@vercel/next"
-    },
-    {
-      "src": "backend/package.json",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/backend/dist/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/$1"
     }
   ]
 }

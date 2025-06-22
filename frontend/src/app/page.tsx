@@ -1,14 +1,23 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 
 interface Game {
   id: string;
   name: string;
-  yearpublished: string | null;
-  type: 'boardgame' | 'boardgameexpansion';
-  image: string | null;
-  rank: number | null;
+  yearPublished?: string;
+}
+
+interface Listing {
+  id: number;
+  gameName: string;
+  bggId: number;
+  condition: string;
+  price: number;
+  seller: {
+    name: string;
+  };
 }
 
 interface UserProfile {
@@ -17,20 +26,8 @@ interface UserProfile {
   photo?: string;
 }
 
-interface Listing {
-  id: string;
-  bggId: string;
-  gameName: string;
-  condition: string;
-  price: number;
-  notes: string | null;
-  seller: {
-    name: string;
-    photo: string;
-  };
-}
-
 export default function Home() {
+  const { data: session } = useSession();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Game[]>([]);
   const [loading, setLoading] = useState(false);
@@ -38,13 +35,11 @@ export default function Home() {
   const [hasSearched, setHasSearched] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [listings, setListings] = useState<Listing[]>([]);
-
-  // State for the new listing form
   const [newListingGameName, setNewListingGameName] = useState('');
   const [newListingBggId, setNewListingBggId] = useState('');
   const [newListingCondition, setNewListingCondition] = useState('Like New');
   const [newListingPrice, setNewListingPrice] = useState('');
-  const createListingFormRef = React.useRef<HTMLDivElement>(null);
+  const createListingFormRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -164,18 +159,18 @@ export default function Home() {
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Board Game Swap</h1>
           <div>
-            {user ? (
+            {session ? (
               <div className="flex items-center gap-4">
-                {user.photo && <img src={user.photo} alt={user.name} className="w-10 h-10 rounded-full" />}
-                <span className="font-semibold">Welcome, {user.name}!</span>
-                <a href="/api/auth/logout" className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                {session.user?.image && <img src={session.user.image} alt={session.user.name ?? ''} className="w-10 h-10 rounded-full" />}
+                <span className="font-semibold">Welcome, {session.user?.name}!</span>
+                <button onClick={() => signOut()} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                   Logout
-                </a>
+                </button>
               </div>
             ) : (
-              <a href="/api/auth/google" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              <button onClick={() => signIn('google')} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                 Login with Google
-              </a>
+              </button>
             )}
           </div>
         </div>
@@ -203,7 +198,7 @@ export default function Home() {
         </div>
 
         {/* Create Listing Form */}
-        {user && (
+        {session && (
           <div ref={createListingFormRef} className="mb-8 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-4">Create a New Listing</h2>
             <form onSubmit={handleCreateListing} className="space-y-4">
@@ -245,9 +240,10 @@ export default function Home() {
               {results.map(game => (
                 <div key={game.id} className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    {game.image && <img src={game.image} alt={game.name} className="w-16 h-16 object-contain rounded" />}
+                    
                     <div>
-                      <p className="font-bold text-lg">{game.name} ({game.yearpublished})</p>
+                      <p className="font-bold text-lg">{game.name}</p>
+                      <p className="text-sm text-gray-400">Published: {game.yearPublished}</p>
                       <p className="text-sm text-gray-600 dark:text-gray-400">BGG ID: {game.id}</p>
                     </div>
                   </div>
@@ -269,9 +265,7 @@ export default function Home() {
                   <p className="font-bold text-lg">{listing.gameName}</p>
                   <p className="text-xl font-semibold text-green-500">${listing.price.toFixed(2)}</p>
                   <p><span className="font-semibold">Condition:</span> {listing.condition}</p>
-                  {listing.notes && <p className="text-sm italic text-gray-600 dark:text-gray-400">Notes: {listing.notes}</p>}
                   <div className="flex items-center gap-2 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                    <img src={listing.seller.photo} alt={listing.seller.name} className="w-8 h-8 rounded-full" />
                     <span className="text-sm">Sold by {listing.seller.name}</span>
                   </div>
                 </div>
