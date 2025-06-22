@@ -12,8 +12,8 @@ interface Game {
 }
 
 interface UserProfile {
-  displayName: string;
-  photos?: { value: string }[];
+  name: string;
+  photo?: string;
 }
 
 export default function Home() {
@@ -79,8 +79,8 @@ export default function Home() {
             <div>
               {user ? (
                 <div className="flex items-center gap-4">
-                  {user.photos && <img src={user.photos[0].value} alt="User" className="w-10 h-10 rounded-full" />}
-                  <span className="font-semibold">Welcome, {user.displayName}!</span>
+                  {user.photo && <img src={user.photo} alt="User" className="w-10 h-10 rounded-full" />}
+                  <span className="font-semibold">Welcome, {user.name}!</span>
                   <a href="http://localhost:3001/api/auth/logout" className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
                     Logout
                   </a>
