@@ -17,15 +17,15 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 
 // Google callback URL
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), (req, res) => {
-    // Successful authentication, redirect home.
-    res.redirect('http://localhost:3000');
+    // Successful authentication, redirect to the frontend.
+    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
 });
 
 // Logout
 router.get('/logout', (req, res, next) => {
     req.logout((err) => {
         if (err) { return next(err); }
-        res.redirect('http://localhost:3000');
+        res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000');
     });
 });
 
